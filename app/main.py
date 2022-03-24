@@ -15,7 +15,7 @@ def get_db():
         db.close()
 
 
-@app.post("/short_link/")
+@app.post("/short_link/", response_model=schemas.ShortLink)
 def get_or_create_short_link(link: schemas.LongLink, db: Session = Depends(get_db)):
     short_link = crud.get_or_create_short_link(link=link, db=db)
     return short_link

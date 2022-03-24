@@ -21,7 +21,6 @@ def get_or_create_short_link(db: Session, link: schemas.LongLink):
         )
         db.add(link)
         db.commit()
-        # db.refresh(link_bd)
 
         link_bd = (
             db.query(models.Link)
@@ -29,8 +28,7 @@ def get_or_create_short_link(db: Session, link: schemas.LongLink):
             .first()
         )
         id = link_bd.id
-        short_link = base64.b64encode((str(id)).encode())
-        print(short_link, type(short_link))
+        short_link = base64.b64encode((str(id)).encode()).decode("utf-8").rstrip("=")
 
         link_bd.short_link = short_link
         db.add(link_bd)
