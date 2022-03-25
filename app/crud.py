@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 import base64
-from fastapi.responses import RedirectResponse
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from fastapi import HTTPException
 
 
@@ -16,7 +15,7 @@ def get_or_create_short_link(db: Session, link: schemas.LongLink):
         end_one_year = today + timedelta(days=365)
         link = models.Link(
             long_link=link.long_link,
-            expiration_date=end_date,
+            end_date=end_date,
             end_one_year=end_one_year,
         )
         db.add(link)
@@ -38,17 +37,15 @@ def get_or_create_short_link(db: Session, link: schemas.LongLink):
     return link_bd
 
 
-def redirect_long_link(db: Session, link: schemas.ShortLink):
-    link_bd = (
-        db.query(models.Link).filter(models.Link.short_link == link.short_link).first()
-    )
-    today = today = datetime.today()
+def redirect_long_link(db: Session, link):
+    link_bd = db.query(models.Link).filter(models.Link.short_link == link).first()
+    today = date.today()
     if (
         link_bd is not None
-        and link_bd.expiration_date <= today
-        and link_bd.one_year_end <= link_bd.end_one_year
+        and link_bd.end_date >= today
+        and link_bd.end_one_year >= link_bd.end_one_year
     ):
         long_link = link_bd.long_link
-        return RedirectResponse(url=long_link)
+        return long_link
     else:
         raise HTTPException(status_code=404, detail="Item not found")
